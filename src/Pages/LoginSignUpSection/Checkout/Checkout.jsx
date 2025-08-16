@@ -2,17 +2,7 @@ import React, {useState}  from "react";
 import mainLogo from "../../../assets/mainLogo.png"
 import BG from "../../../assets/Vector.svg"
 import Footer from "../../Shared/Footer/Footer"
-
-
-const detectCardType = (number) => {
-    const cleaned = number.replace(/\D/g, "");
-    if (/^4/.test(cleaned)) return "visa";
-    if (/^5[1-5]/.test(cleaned)) return "mastercard";
-    if (/^3[47]/.test(cleaned)) return "amex";
-    return "";
-};
-
-// import Cleave from "cleave.js/react";
+import Cleave from "cleave.js/react";
 
 
 const Checkout = () => {
@@ -43,59 +33,29 @@ const Checkout = () => {
     const [cardType, setCardType] = useState("");
 
     const handleCardNumberChange = (e) => {
-        let value = e.target.value.replace(/\D/g, ""); // remove non-digits
-        if (value.length > 16) value = value.slice(0, 16);
-
-        const type = detectCardType(value);
-        setCardType(type);
-
+        const value = e.target.rawValue; // unformatted value
         setFormData((prev) => ({ ...prev, cardNumber: value }));
     };
 
-    const handleExpiryChange = (e) => {
-        let value = e.target.value.replace(/\D/g, "");
-        if (value.length > 4) value = value.slice(0, 4);
+    const handleCardTypeChange = (type) => {
+        setCardType(type);
+        // Reset CVV if length invalid for new card type
+        setFormData((prev) => ({
+        ...prev,
+        cvv: prev.cvv.slice(0, type === "amex" ? 4 : 3),
+        }));
+    };
 
-        if (value.length >= 3) {
-        value = `${value.slice(0, 2)}/${value.slice(2)}`;
-        }
-        setFormData((prev) => ({ ...prev, expiry: value }));
+    const handleExpiryChange = (e) => {
+        setFormData((prev) => ({ ...prev, expiry: e.target.value }));
     };
 
     const handleCVVChange = (e) => {
         let maxLen = cardType === "amex" ? 4 : 3;
         let value = e.target.value.replace(/\D/g, "");
         if (value.length > maxLen) value = value.slice(0, maxLen);
-
         setFormData((prev) => ({ ...prev, cvv: value }));
     };
-
-    // const [cardType, setCardType] = useState("");
-
-    // const handleCardNumberChange = (e) => {
-    //     const value = e.target.rawValue; // unformatted value
-    //     setFormData((prev) => ({ ...prev, cardNumber: value }));
-    // };
-
-    // const handleCardTypeChange = (type) => {
-    //     setCardType(type);
-    //     // Reset CVV if length invalid for new card type
-    //     setFormData((prev) => ({
-    //     ...prev,
-    //     cvv: prev.cvv.slice(0, type === "amex" ? 4 : 3),
-    //     }));
-    // };
-
-    // const handleExpiryChange = (e) => {
-    //     setFormData((prev) => ({ ...prev, expiry: e.target.value }));
-    // };
-
-    // const handleCVVChange = (e) => {
-    //     let maxLen = cardType === "amex" ? 4 : 3;
-    //     let value = e.target.value.replace(/\D/g, "");
-    //     if (value.length > maxLen) value = value.slice(0, maxLen);
-    //     setFormData((prev) => ({ ...prev, cvv: value }));
-    // };
 
     const [autoCharge, setAutoCharge] = useState(true);
     const selectedPkg = packages.find((p) => p.value === formData.package) ?? packages[0];
@@ -381,63 +341,8 @@ const Checkout = () => {
                             </div> */}
 
 
-                            {/* --------raw------ */}
-                            <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-4">
-
-                                <div className="relative">
-                                <label htmlFor="cardNumber" className="block font-medium text-gray-700 mb-1">
-                                    Card Number*
-                                </label>
-                                <input
-                                    id="cardNumber"
-                                    type="text"
-                                    placeholder="Card Number"
-                                    value={formData.cardNumber}
-                                    onChange={handleCardNumberChange}
-                                    className="border rounded-md px-4 py-2 w-full pr-12"
-                                />
-                                {cardType && (
-                                    <img
-                                    src={`/card-icons/${cardType}.png`} // Your icon folder path
-                                    alt={cardType}
-                                    className="w-8 h-5 absolute right-3 top-[38px]"
-                                    />
-                                )}
-                                </div>
-
-
-                                <div>
-                                <label htmlFor="expiry" className="block font-medium text-gray-700 mb-1">
-                                    Expiry Date*
-                                </label>
-                                <input
-                                    id="expiry"
-                                    type="text"
-                                    placeholder="MM/YY"
-                                    value={formData.expiry}
-                                    onChange={handleExpiryChange}
-                                    className="border rounded-md px-4 py-2 w-full"
-                                />
-                                </div>
-
-
-                                <div>
-                                <label htmlFor="cvv" className="block font-medium text-gray-700 mb-1">
-                                    CVV*
-                                </label>
-                                <input
-                                    id="cvv"
-                                    type="password"
-                                    placeholder="CVV"
-                                    value={formData.cvv}
-                                    onChange={handleCVVChange}
-                                    className="border rounded-md px-4 py-2 w-full"
-                                />
-                                </div>
-                            </div>
-
                             {/* --------pkg------ */}
-                            {/* <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-4">
 
                                 <div className="relative">
                                     <label htmlFor="cardNumber" className="block font-medium text-gray-700 mb-1">
@@ -504,36 +409,13 @@ const Checkout = () => {
                                     />
                                     </div>
                                 </div>
-                            </div> */}
+                            </div>
 
                         </div>
 
                         {/* Trial Expiry Options */}
                         <div>
-                            {/* <h2 className="text-lg font-semibold mb-4">Trial Expiry Options</h2>
-                            <div className="space-y-2">
-                            {[
-                                { value: "monthly", label: "Monthly - SAR 99.00" },
-                                { value: "3months", label: "3 Months - SAR 199.00" },
-                                { value: "6months", label: "6 Months - SAR 299.00" },
-                                { value: "yearly", label: "Yearly - SAR 399.00" },
-                            ].map((pkg) => (
-                                <label
-                                key={pkg.value}
-                                className="flex items-center gap-2 cursor-pointer"
-                                >
-                                <input
-                                    type="radio"
-                                    name="package"
-                                    value={pkg.value}
-                                    checked={formData.package === pkg.value}
-                                    onChange={() => handlePackageChange(pkg.value)}
-                                    className="accent-[#7a2060]"
-                                />
-                                {pkg.label}
-                                </label>
-                            ))}
-                            </div> */}
+
                              <section>
                                 <h2 className="text-lg font-semibold mb-4">Trial Expiry Options</h2>
 
